@@ -17,16 +17,7 @@
   },
   "permissions": {
     "defaultMode": "bypassPermissions",
-    "deny": [
-      "Glob",
-      "Grep",
-      "LS",
-      "MultiEdit",
-      "WebFetch",
-      "WebSearch",
-      "NotebookEdit",
-      "NotebookRead"
-    ]
+    "deny": ["MultiEdit", "WebSearch", "NotebookEdit", "NotebookRead"]
   },
   "hooks": {
     "SessionStart": [
