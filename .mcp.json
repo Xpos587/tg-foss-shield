@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "morphllm-fast-apply": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["@morph-llm/morph-fast-apply"],
+      "env": {
+        "ALL_TOOLS": "false"
+      }
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "perplexity": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["perplexity-mcp"],
+      "env": {
+        "PERPLEXITY_TIMEOUT_MS": "600000"
+      }
+    }
+  }
+}

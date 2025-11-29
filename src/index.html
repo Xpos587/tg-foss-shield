@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bot Guard - Human Verification</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 2rem 3rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        altcha-widget {
+            margin-bottom: 1.5rem;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .success-message {
+            display: none;
+            color: #28a745;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/altcha/dist/altcha.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>🛡️ Защита от ботов</h2>
+        <p class="description">
+            Пожалуйста, докажите, что вы человек, чтобы получить доступ к чату.
+        </p>
+
+        <form id="verifyForm" action="/verify" method="POST">
+            <input type="hidden" name="user_id" value="{{.UserID}}" />
+            <input type="hidden" name="chat_id" value="{{.ChatID}}" />
+
+            <!-- Виджет Altcha -->
+            <altcha-widget
+                challengejson="{{.Challenge}}"
+                style="--altcha-color-primary: #667eea; --altcha-border-radius: 8px;">
+            </altcha-widget>
+
+            <button type="submit" id="submitBtn">
+                Подтвердить
+                <span class="loading" id="loading" style="display: none;"></span>
+            </button>
+        </form>
+
+        <div class="success-message" id="successMessage">
+            ✅ Успешно! Вы можете вернуться в Telegram.
+        </div>
+    </div>
+
+    <script>
+        // Обработка отправки формы
+        document.getElementById('verifyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const successMessage = document.getElementById('successMessage');
+
+            // Показываем индикатор загрузки
+            submitBtn.disabled = true;
+            loading.style.display = 'inline-block';
+
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Успех
+                    this.style.display = 'none';
+                    successMessage.style.display = 'block';
+
+                    // Закрываем окно через несколько секунд
+                    setTimeout(() => {
+                        window.close();
+                    }, 2000);
+                } else {
+                    // Ошибка
+                    throw new Error('Verification failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Произошла ошибка. Пожалуйста, попробуйте еще раз.');
+            } finally {
+                // Скрываем индикатор загрузки
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        // Проверяем наличие параметров в URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id');
+        const chatId = urlParams.get('chat_id');
+
+        if (!userId || !chatId) {
+            document.querySelector('.container').innerHTML = `
+                <h2>❌ Ошибка</h2>
+                <p>Отсутствуют необходимые параметры для верификации.</p>
+                <p>Пожалуйста, перейдите по ссылке из Telegram.</p>
+            `;
+        }
+    </script>
+</body>
+</html>
